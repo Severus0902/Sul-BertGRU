@@ -78,51 +78,51 @@ def split_data(device):
     with open('test_all.pkl', 'rb') as f:
         test_all_dataset = pickle.load(f)
 
-    datasets = [train_left_dataset, train_right_dataset, train_all_dataset]
-    cleaned_datasets = []
-    model=GRU_CNN_Model(gru_input_size=obj.input_size, gru_hidden_size=obj.hidden_size,
-                               gru_num_layers=obj.num_layers,
-                               gru_num_classes=obj.num_classes,
-                               cnn_input_channels=obj.input_channels, cnn_output_size=obj.output_size).to(device)
+    # datasets = [train_left_dataset, train_right_dataset, train_all_dataset]
+    # cleaned_datasets = []
+    # model=GRU_CNN_Model(gru_input_size=obj.input_size, gru_hidden_size=obj.hidden_size,
+    #                            gru_num_layers=obj.num_layers,
+    #                            gru_num_classes=obj.num_classes,
+    #                            cnn_input_channels=obj.input_channels, cnn_output_size=obj.output_size).to(device)
 
-    model.load_state_dict(torch.load('best_model.pth'))
-    left_train_loader = torch.utils.data.DataLoader(train_left_dataset,batch_size=64, shuffle=False, drop_last=False)
-    right_train_loader = torch.utils.data.DataLoader(train_right_dataset,batch_size=64, shuffle=False, drop_last=False)
-    all_train_loader = torch.utils.data.DataLoader(train_all_dataset,batch_size=64, shuffle=False, drop_last=False)
-    total=0
-    noise_data_orders=[]
-    for left_data, right_data, all_data in tqdm(zip(left_train_loader, right_train_loader, all_train_loader)):
-        left_data[0] = left_data[0].to(device)
-        left_data[1] = left_data[1].to(device)
-        right_data[0] = right_data[0].to(device)
-        right_data[1] = right_data[1].to(device)
-        all_data[0] = all_data[0].to(device)
-        all_data[1] = all_data[1].to(device)
-        left_samples, left_labels = left_data[0], left_data[1]
-        right_samples, right_labels = right_data[0], right_data[1]
-        all_samples, all_labels = all_data[0], all_data[1]
-        # 将三个数据批次作为元组传递给模型进行训练
-        with torch.no_grad():
-            _,psx = model(left_samples, right_samples, all_samples)
-            labels=left_labels.cpu().numpy().astype(int)
-            psxs=psx.cpu().numpy()
-            ordered_label_errors = get_noise_indices(s=labels, psx=psxs, sorted_index_method='normalized_margin')
+    # model.load_state_dict(torch.load('best_model.pth'))
+    # left_train_loader = torch.utils.data.DataLoader(train_left_dataset,batch_size=64, shuffle=False, drop_last=False)
+    # right_train_loader = torch.utils.data.DataLoader(train_right_dataset,batch_size=64, shuffle=False, drop_last=False)
+    # all_train_loader = torch.utils.data.DataLoader(train_all_dataset,batch_size=64, shuffle=False, drop_last=False)
+    # total=0
+    # noise_data_orders=[]
+    # for left_data, right_data, all_data in tqdm(zip(left_train_loader, right_train_loader, all_train_loader)):
+    #     left_data[0] = left_data[0].to(device)
+    #     left_data[1] = left_data[1].to(device)
+    #     right_data[0] = right_data[0].to(device)
+    #     right_data[1] = right_data[1].to(device)
+    #     all_data[0] = all_data[0].to(device)
+    #     all_data[1] = all_data[1].to(device)
+    #     left_samples, left_labels = left_data[0], left_data[1]
+    #     right_samples, right_labels = right_data[0], right_data[1]
+    #     all_samples, all_labels = all_data[0], all_data[1]
+    #     # 将三个数据批次作为元组传递给模型进行训练
+    #     with torch.no_grad():
+    #         _,psx = model(left_samples, right_samples, all_samples)
+    #         labels=left_labels.cpu().numpy().astype(int)
+    #         psxs=psx.cpu().numpy()
+    #         ordered_label_errors = get_noise_indices(s=labels, psx=psxs, sorted_index_method='normalized_margin')
 
-            print(ordered_label_errors)
-            for k in ordered_label_errors:
-                noise_data_orders.append(k+total)
-            total=total+left_samples.size(0)
+    #         print(ordered_label_errors)
+    #         for k in ordered_label_errors:
+    #             noise_data_orders.append(k+total)
+    #         total=total+left_samples.size(0)
 
-    clean_order = list(range(len(train_left_dataset)))
-    for k in noise_data_orders:
-        clean_order.pop(clean_order.index(k))
-    train_left_dataset1=[]
-    train_right_dataset1=[]
-    train_all_dataset1=[]
+    # clean_order = list(range(len(train_left_dataset)))
+    # for k in noise_data_orders:
+    #     clean_order.pop(clean_order.index(k))
+    # train_left_dataset1=[]
+    # train_right_dataset1=[]
+    # train_all_dataset1=[]
 
-    for i in clean_order:
-        train_left_dataset1.append(train_left_dataset[i])
-        train_right_dataset1.append(train_right_dataset[i])
-        train_all_dataset1.append(train_all_dataset[i])
-    return train_left_dataset1,train_right_dataset1,train_all_dataset1, test_left_dataset, test_right_dataset, test_all_dataset
+    # for i in clean_order:
+    #     train_left_dataset1.append(train_left_dataset[i])
+    #     train_right_dataset1.append(train_right_dataset[i])
+    #     train_all_dataset1.append(train_all_dataset[i])
+    return train_left_dataset,train_right_dataset,train_all_dataset, test_left_dataset, test_right_dataset, test_all_dataset
 
